@@ -10,9 +10,9 @@
     },
     "image": "images/1.jpg",
     "url": "https://x.com/hajimi_CTO_BNB/status/1990643902249120255",
-    "start": "2025/11/18",
-    "end": "2025/11/21",
-    "status": "completed"
+    "start": "2025/11/18 00:00",
+    "end": "2025/11/21 00:00",
+    "status": "limited"
   },
   {
     "title": {
@@ -25,7 +25,8 @@
     },
     "image": "images/2.png",
     "url": "https://x.com/hajimi_fund/status/1987769574113382594",
-    "start": "2025/11/10",
+    "start": "2025/11/10 00:00",
+    "end": "",
     "status": "permanent"
   },
   {

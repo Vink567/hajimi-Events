@@ -170,6 +170,9 @@
           syncEndVisibility();
           document.getElementById('start').value = toLocalInputValue(e.start);
           document.getElementById('end').value = toLocalInputValue(e.end);
+          // 编辑模式下：文件输入不强制，清空当前选择，使用已保存图片并立即预览
+          imageEl.required = false;
+          imageEl.value = '';
           currentImageDataURL = e.image || '';
           preview.innerHTML = currentImageDataURL ? `<img src="${currentImageDataURL}" alt="预览" style="max-width:280px;max-height:160px;border-radius:8px;object-fit:contain;background:#ddd;">` : '';
           submitBtn.textContent = '更新活动';
@@ -212,6 +215,9 @@
       editingIndex = null;
       preview.innerHTML = '';
       syncEndVisibility();
+      // 保存后恢复创建模式约束：重新要求选择文件
+      imageEl.required = true;
+      imageEl.value = '';
       submitBtn.textContent = '保存活动';
       alert('已保存活动');
     });

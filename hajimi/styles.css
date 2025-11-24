@@ -39,6 +39,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .filter-chip.active { outline: 2px solid rgba(255,255,255,.85); }
 .site-header h1 { margin: 0; font-size: 28px; }
 .site-header p { margin: 8px 0 0; color: var(--muted); }
+/* 头部装饰动图区域：左右来回移动 */
+.header-decor { position: relative; height: 80px; margin-top: 8px; }
+.decor { position: absolute; top: 0; width: 160px; height: 80px; object-fit: contain; opacity: .9; pointer-events: none; }
+.decor-left { left: 24px; }
+.decor-right { right: 24px; }
 /* 活动卡片网格与固定卡片尺寸 */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, 320px); gap: 20px; padding-top: 24px; justify-content: start; }
 /* 卡片样式：固定宽度，轻微悬停效果 */
@@ -49,9 +54,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 /* 图片完整展示，不裁剪 */
 .card img { width: 100%; height: 180px; object-fit: contain; background: #dddddd; }
 /* 内容区与日期、状态徽章定位 */
-.card-content { padding: 20px 16px 24px 16px; position: relative; min-height: 140px; }
+.card-content { padding: 20px 16px 16px 16px; position: relative; min-height: 150px; display: flex; flex-direction: column; }
 .card-content h3 { word-break: break-word; }
-.card-meta { position: absolute; right: 16px; bottom: 16px; font-size: 12px; color: var(--muted); }
+.card-meta { margin-top: auto; text-align: right; font-size: 12px; color: var(--muted); }
 .badge { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,.12); }
 .badge-permanent { background: #10b981; }
 .badge-limited { background: #f59e0b; }
