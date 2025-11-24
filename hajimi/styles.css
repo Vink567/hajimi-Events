@@ -49,7 +49,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 /* 图片完整展示，不裁剪 */
 .card img { width: 100%; height: 180px; object-fit: contain; background: #dddddd; }
 /* 内容区与日期、状态徽章定位 */
-.card-content { padding: 20px 16px 24px; position: relative; min-height: 140px; }
+.card-content { padding: 20px 16px 24px 16px; position: relative; min-height: 140px; }
+.card-content h3 { word-break: break-word; }
 .card-meta { position: absolute; right: 16px; bottom: 16px; font-size: 12px; color: var(--muted); }
 .badge { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 999px; color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,.12); }
 .badge-permanent { background: #10b981; }
@@ -60,3 +61,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 /* 语言箭头旋转动画 */
 .lang-arrow { display: inline-block; transition: transform .2s ease; }
 .lang-switch.open .lang-arrow { transform: rotate(180deg); }
+/* 后台表单样式（简洁复用现有按钮色） */
+.admin-form { display: grid; gap: 16px; max-width: 720px; }
+.form-row { display: grid; gap: 8px; }
+.form-row label { font-weight: 700; color: var(--fg); }
+.admin-form input[type="text"],
+.admin-form input[type="url"],
+.admin-form input[type="datetime-local"],
+.admin-form textarea,
+.admin-form select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--fg); }
+.form-actions { display: flex; gap: 12px; align-items: center; }
+.preview { margin-top: 8px; }
+.admin-list h2 { margin-top: 24px; }
