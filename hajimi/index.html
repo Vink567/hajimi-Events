@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>官方活动</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-grid">
+      <a class="nav-brand" href="#top" data-i18n="brand"></a>
+      <div class="nav-center">
+        <a class="nav-home" href="#top" data-i18n="home"></a>
+      </div>
+      <div class="lang-switch">
+        <button class="lang-toggle"><span class="lang-current">中文</span> <span class="lang-arrow">▼</span></button>
+        <div class="lang-menu">
+          <button class="lang-item" data-lang="zh">中文</button>
+          <button class="lang-item" data-lang="en">English</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <header id="top" class="site-header">
+    <div class="container">
+      <h1 data-i18n="headerTitle"></h1>
+      <p data-i18n="headerSubtitle"></p>
+      <div class="filters">
+        <button class="filter-chip chip-all" data-filter="all">全部</button>
+        <button class="filter-chip chip-limited" data-filter="limited">限时</button>
+        <button class="filter-chip chip-permanent" data-filter="permanent">常驻</button>
+        <button class="filter-chip chip-completed" data-filter="completed">完结</button>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <div id="activity-grid" class="grid"></div>
+  </main>
+  <script>
+    // 当前语言，默认中文
+    let lang = localStorage.getItem('lang') || 'zh';
+    // 头部与导航文案（中英）
+    const i18n = {
+      zh: { brand: '哈基米活动', home: '首页', headerTitle: '哈基米活动', headerSubtitle: '哈基米生态活动正在进行中，点击下方卡片访问详情', from: '起' },
+      en: { brand: 'Hajimi Events', home: 'Home', headerTitle: 'Hajimi Events', headerSubtitle: 'Hajimi ecosystem events are ongoing. Click cards below for details', from: 'from' }
+    };
+    // 活动数据：支持开始/结束时间（北京时间），状态：限时/常驻/完结
+    const events = [
+      { title: { zh: '哈基米唱歌大赛S1', en: 'Hajimi Singing Contest S1' }, description: { zh: '来唱歌🎤吧，哈基米好声音', en: 'Let’s sing 🎤 — Hajimi Voice' }, image: 'images/1.jpg', url: 'https://x.com/hajimi_CTO_BNB/status/1990643902249120255', start: '2025-11-18', end: '2025-11-21', status: 'completed' },
+      { title: { zh: '拯救流浪计划', en: 'Rescue Stray Plan' }, description: { zh: '你的善举，不是施舍，是拯救。让每一只小猫，都拥有被爱的权利！', en: 'Your kindness is rescue, not charity. Every cat deserves love!' }, image: 'images/2.png', url: 'https://x.com/hajimi_fund/status/1987769574113382594', start: '2025-11-10', status: 'permanent' },
+      { title: { zh: '活动三', en: 'Event Three' }, description: { zh: '哈基米生态活动正在进行中，点击下方卡片访问详情', en: 'Hajimi ecosystem events are ongoing. Click cards below for details' }, image: 'images/event-3.svg', url: 'https://example.com/event-3', start: '2025-09-01', end: '2025-10-01', status: 'limited' }
+    ];
+    // 活动网格容器
+    const grid = document.getElementById('activity-grid');
+    function setTexts() {
+      // 设置带 data-i18n 的元素文本
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        el.textContent = i18n[lang][k] || '';
+      });
+      // 更新语言开关显示
+      const current = document.querySelector('.lang-current');
+      if (current) current.textContent = lang === 'zh' ? '中文' : 'English';
+      document.querySelectorAll('.lang-item').forEach(btn => {
+        btn.classList.toggle('selected', btn.getAttribute('data-lang') === lang);
+      });
+    }
+    // 状态标签文案
+    const statusText = {
+      zh: { permanent: '常驻', limited: '限时', completed: '完结' },
+      en: { permanent: 'Permanent', limited: 'Limited', completed: 'Completed' }
+    };
+    // 解析北京时间到毫秒时间戳（仅日期则按 00:00）
+    function parseBJ(dateStr) {
+      if (!dateStr) return null;
+      const s = String(dateStr).trim();
+      const parts = s.split(/\s+/);
+      const d = parts[0].replace(/\//g, '-');
+      const t = parts[1] ? parts[1] : '00:00';
+      const iso = `${d}T${t}:00+08:00`;
+      const ms = Date.parse(iso);
+      return Number.isFinite(ms) ? ms : null;
+    }
+    // 计算动态状态：超过结束时间则视为完结
+    function effectiveStatus(item, nowMs) {
+      const endMs = parseBJ(item.end);
+      if (endMs && nowMs >= endMs) return 'completed';
+      return item.status;
+    }
+    // 格式化显示为 YYYY/MM/DD（不含时间）
+    function fmtFull(d) {
+      if (!d) return '';
+      const dt = new Date(d);
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth()+1).padStart(2,'0');
+      const day = String(dt.getDate()).padStart(2,'0');
+      return `${y}/${m}/${day}`;
+    }
+    function formatRange(start, end) {
+      // 结束存在则显示完整范围；否则显示“起”
+      const sFull = fmtFull(start);
+      if (end) {
+        const eFull = fmtFull(end);
+        return `${sFull} - ${eFull}`;
+      }
+      return lang === 'zh' ? `${sFull}${i18n[lang].from}` : `${i18n[lang].from} ${sFull}`;
+    }
+    // 渲染单张卡片
+    function renderCard(item) {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = item.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.setAttribute('aria-label', item.title[lang]);
+      const img = document.createElement('img');
+      img.src = item.image;
+      img.alt = item.title[lang];
+      const content = document.createElement('div');
+      content.className = 'card-content';
+      const h3 = document.createElement('h3');
+      h3.textContent = item.title[lang];
+      const p = document.createElement('p');
+      p.textContent = item.description[lang];
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      meta.textContent = formatRange(item.start, item.end);
+      // 根据当前时间计算状态并显示徽章
+      const nowMs = Date.now();
+      const st = effectiveStatus(item, nowMs);
+      const badge = document.createElement('div');
+      badge.className = `badge badge-${st}`;
+      badge.textContent = statusText[lang][st];
+      content.appendChild(h3);
+      content.appendChild(p);
+      content.appendChild(meta);
+      content.appendChild(badge);
+      a.appendChild(img);
+      a.appendChild(content);
+      return a;
+    }
+    // 当前筛选状态与内容高度基线
+    let filterStatus = null;
+    let baseContentHeight = 0;
+    // 排序：状态优先级 + 同类按开始时间最近在前
+    function sortEvents(list, nowMs) {
+      const pri = { limited: 0, permanent: 1, completed: 2 };
+      return list.slice().sort((a,b) => {
+        const ap = pri[effectiveStatus(a, nowMs)], bp = pri[effectiveStatus(b, nowMs)];
+        if (ap !== bp) return ap - bp;
+        const ad = parseBJ(a.start) || 0;
+        const bd = parseBJ(b.start) || 0;
+        return bd - ad;
+      });
+    }
+    function renderEvents() {
+      // 批量渲染，使用 DocumentFragment 减少重排
+      grid.innerHTML = '';
+      const nowMs = Date.now();
+      const list = sortEvents((filterStatus ? events.filter(e => effectiveStatus(e, nowMs) === filterStatus) : events), nowMs);
+      const frag = document.createDocumentFragment();
+      list.forEach(e => frag.appendChild(renderCard(e)));
+      grid.appendChild(frag);
+      const h = equalizeCardContentHeights();
+      if (!filterStatus) baseContentHeight = Math.max(baseContentHeight, h);
+    }
+    function setLang(l) {
+      // 切换语言并刷新页面文本与卡片
+      lang = l;
+      localStorage.setItem('lang', l);
+      setTexts();
+      renderEvents();
+    }
+    function equalizeCardContentHeights() {
+      // 统一所有卡片内容区高度，避免筛选时跳动
+      const boxes = Array.from(document.querySelectorAll('.card-content'));
+      boxes.forEach(b => { b.style.height = ''; });
+      if (!boxes.length) return 0;
+      const maxH = Math.max(...boxes.map(b => b.offsetHeight));
+      const target = Math.max(baseContentHeight, maxH);
+      boxes.forEach(b => { b.style.height = target + 'px'; });
+      return target;
+    }
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      // 防抖：窗口大小变化时重新计算高度
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(equalizeCardContentHeights, 150);
+    });
+    const switchEl = document.querySelector('.lang-switch');
+    const toggleEl = document.querySelector('.lang-toggle');
+    toggleEl.addEventListener('click', () => {
+      // 语言菜单展开/收起
+      switchEl.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      // 点击菜单外部收起
+      if (!switchEl.contains(e.target)) { switchEl.classList.remove('open'); }
+    });
+    document.querySelectorAll('.lang-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 选择语言并收起菜单
+        setLang(btn.getAttribute('data-lang'));
+        switchEl.classList.remove('open');
+      });
+    });
+    const chips = Array.from(document.querySelectorAll('.filter-chip'));
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.getAttribute('data-filter');
+        if (val === 'all') {
+          filterStatus = null;
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+        } else if (filterStatus === val) {
+          filterStatus = null;
+          chips.forEach(c => c.classList.remove('active'));
+          const allChip = document.querySelector('.chip-all');
+          if (allChip) allChip.classList.add('active');
+        } else {
+          filterStatus = val;
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+        }
+        // 切换筛选后重新渲染与对齐高度
+        renderEvents();
+      });
+    });
+    const allChip = document.querySelector('.chip-all');
+    if (allChip) allChip.classList.add('active');
+    setLang(lang);
+    // 每分钟自动刷新一次，以更新完结状态
+    setInterval(renderEvents, 60000);
+  </script>
+</body>
+</html>
