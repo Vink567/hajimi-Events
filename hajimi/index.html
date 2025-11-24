@@ -42,8 +42,14 @@
     let lang = localStorage.getItem('lang') || 'zh';
     // 头部与导航文案（中英）
     const i18n = {
-      zh: { brand: '哈基米活动', home: '首页', headerTitle: '哈基米活动', headerSubtitle: '哈基米生态活动正在进行中，点击下方卡片访问详情', from: '起' },
-      en: { brand: 'Hajimi Events', home: 'Home', headerTitle: 'Hajimi Events', headerSubtitle: 'Hajimi ecosystem events are ongoing. Click cards below for details', from: 'from' }
+      zh: {
+        brand: '哈基米活动', home: '首页', headerTitle: '哈基米活动', headerSubtitle: '哈基米生态活动正在进行中，点击下方卡片访问详情', from: '起',
+        filters: { all: '全部', limited: '限时', permanent: '常驻', completed: '完结' }
+      },
+      en: {
+        brand: 'Hajimi Events', home: 'Home', headerTitle: 'Hajimi Events', headerSubtitle: 'Hajimi ecosystem events are ongoing. Click cards below for details', from: 'from',
+        filters: { all: 'All', limited: 'Limited', permanent: 'Permanent', completed: 'Completed' }
+      }
     };
     // 活动数据：支持开始/结束时间（北京时间），状态：限时/常驻/完结
     const events = [
@@ -59,6 +65,16 @@
         return Array.isArray(arr) ? arr : [];
       } catch (_) { return []; }
     }
+    // 远程 events.json（部署到云端时用于同步最新活动）
+    let remoteEvents = null;
+    async function fetchRemoteEvents() {
+      try {
+        const res = await fetch('events.json?v=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) remoteEvents = data;
+      } catch (_) { /* 网络异常则忽略 */ }
+    }
     // 活动网格容器
     const grid = document.getElementById('activity-grid');
     function setTexts() {
@@ -73,6 +89,12 @@
       document.querySelectorAll('.lang-item').forEach(btn => {
         btn.classList.toggle('selected', btn.getAttribute('data-lang') === lang);
       });
+      // 更新筛选按钮文案（全部/限时/常驻/完结）
+      const f = i18n[lang].filters;
+      const chipAll = document.querySelector('.chip-all'); if (chipAll) chipAll.textContent = f.all;
+      const chipLimited = document.querySelector('.chip-limited'); if (chipLimited) chipLimited.textContent = f.limited;
+      const chipPermanent = document.querySelector('.chip-permanent'); if (chipPermanent) chipPermanent.textContent = f.permanent;
+      const chipCompleted = document.querySelector('.chip-completed'); if (chipCompleted) chipCompleted.textContent = f.completed;
     }
     // 状态标签文案
     const statusText = {
@@ -166,8 +188,8 @@
       // 批量渲染，使用 DocumentFragment 减少重排
       grid.innerHTML = '';
       const nowMs = Date.now();
-      const src = getUserEvents().concat(events);
-      const list = sortEvents((filterStatus ? src.filter(e => effectiveStatus(e, nowMs) === filterStatus) : src), nowMs);
+      const base = remoteEvents || [];
+      const list = sortEvents((filterStatus ? base.filter(e => effectiveStatus(e, nowMs) === filterStatus) : base), nowMs);
       const frag = document.createDocumentFragment();
       list.forEach(e => frag.appendChild(renderCard(e)));
       grid.appendChild(frag);
@@ -238,7 +260,7 @@
     });
     const allChip = document.querySelector('.chip-all');
     if (allChip) allChip.classList.add('active');
-    setLang(lang);
+    fetchRemoteEvents().finally(() => { setLang(lang); });
     // 每分钟自动刷新一次，以更新完结状态
     setInterval(renderEvents, 60000);
   </script>

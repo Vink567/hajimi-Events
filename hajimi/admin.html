@@ -27,8 +27,16 @@
         <input type="text" id="title" placeholder="例如：哈基米唱歌大赛S2" required>
       </div>
       <div class="form-row">
+        <label>活动名称（English）</label>
+        <input type="text" id="titleEn" placeholder="e.g., Hajimi Singing Contest S2">
+      </div>
+      <div class="form-row">
         <label>活动描述</label>
         <textarea id="desc" rows="3" placeholder="简短介绍活动内容" required></textarea>
+      </div>
+      <div class="form-row">
+        <label>活动描述（English）</label>
+        <textarea id="descEn" rows="3" placeholder="Brief description in English"></textarea>
       </div>
       <div class="form-row">
         <label>跳转链接</label>
@@ -53,6 +61,8 @@
       <div class="form-actions">
         <button id="submit-btn" type="submit" class="filter-chip chip-permanent">保存活动</button>
         <a href="index.html" class="filter-chip chip-all" style="text-decoration:none;display:inline-block;">返回活动页</a>
+        <button type="button" id="export-btn" class="filter-chip chip-limited">导出JSON</button>
+        <label class="filter-chip chip-permanent" style="cursor:pointer;">导入JSON<input type="file" id="import-file" accept="application/json" style="display:none;"></label>
       </div>
     </form>
 
@@ -152,7 +162,9 @@
         edit.onclick = () => {
           editingIndex = idx;
           document.getElementById('title').value = e.title.zh || '';
+          document.getElementById('titleEn').value = e.title.en || '';
           document.getElementById('desc').value = e.description.zh || '';
+          document.getElementById('descEn').value = e.description.en || '';
           document.getElementById('link').value = e.url || '';
           statusEl.value = e.status || 'limited';
           syncEndVisibility();
@@ -173,15 +185,17 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('title').value.trim();
+      const titleEn = document.getElementById('titleEn').value.trim();
       const desc = document.getElementById('desc').value.trim();
+      const descEn = document.getElementById('descEn').value.trim();
       const link = document.getElementById('link').value.trim();
       const status = statusEl.value;
       const start = fmtDateTimeLocal(document.getElementById('start').value);
       const end = fmtDateTimeLocal(document.getElementById('end').value);
       if (!currentImageDataURL) { alert('请上传图片'); return; }
       const item = {
-        title: { zh: title, en: title },
-        description: { zh: desc, en: desc },
+        title: { zh: title, en: titleEn || title },
+        description: { zh: desc, en: descEn || desc },
         image: currentImageDataURL,
         url: link || '#',
         start: start,
@@ -200,6 +214,38 @@
       syncEndVisibility();
       submitBtn.textContent = '保存活动';
       alert('已保存活动');
+    });
+
+    // 导出 JSON（下载为 events.json）
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const data = getUserEvents();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'events.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // 导入 JSON（覆盖本地 user_events）
+    document.getElementById('import-file').addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const text = await f.text();
+      try {
+        const arr = JSON.parse(text);
+        if (!Array.isArray(arr)) throw new Error('格式错误');
+        saveUserEvents(arr);
+        renderList();
+        alert('已导入JSON并保存');
+      } catch (err) {
+        alert('JSON格式不正确');
+      } finally {
+        e.target.value = '';
+      }
     });
   </script>
 </body>
