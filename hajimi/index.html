@@ -244,6 +244,8 @@
     const chips = Array.from(document.querySelectorAll('.filter-chip'));
     chips.forEach(chip => {
       chip.addEventListener('click', () => {
+        chip.classList.add('feedback');
+        setTimeout(() => { chip.classList.remove('feedback'); }, 400);
         const val = chip.getAttribute('data-filter');
         if (val === 'all') {
           filterStatus = null;

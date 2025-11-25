@@ -31,12 +31,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .site-header .container { text-align: center; }
 /* 状态筛选标签 */
 .filters { margin-top: 12px; display: inline-flex; gap: 12px; }
-.filter-chip { appearance: none; border: none; color: #fff; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+.filter-chip { appearance: none; border: none; color: #fff; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-weight: 700; box-shadow: 0 6px 16px rgba(0,0,0,.12); position: relative; transition: transform .2s ease, filter .2s ease; }
 .chip-all { background: #9ca3af; color: #fff; }
 .chip-limited { background: #f59e0b; }
 .chip-permanent { background: #10b981; }
 .chip-completed { background: #ef4444; }
-.filter-chip.active { outline: 2px solid rgba(255,255,255,.85); }
+.filter-chip.active { border: 2px solid #000; outline: none; }
+.filter-chip:active { transform: scale(.96); }
+@keyframes chipPulse { 0% { transform: scale(1); filter: brightness(1); } 20% { transform: scale(.94); filter: brightness(1.1); } 100% { transform: scale(1); filter: brightness(1); } }
+.filter-chip.feedback { animation: chipPulse .4s ease; }
 .site-header h1 { margin: 0; font-size: 28px; }
 .site-header p { margin: 8px 0 0; color: var(--muted); }
 /* 头部装饰动图区域：左右来回移动 */

@@ -183,6 +183,12 @@
       });
     }
     renderList();
+    document.querySelectorAll('.form-actions .filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.add('feedback');
+        setTimeout(() => { btn.classList.remove('feedback'); }, 400);
+      });
+    });
 
     // 表单提交
     form.addEventListener('submit', async (e) => {
